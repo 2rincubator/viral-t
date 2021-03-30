@@ -46,7 +46,7 @@ class MockTweepySearchResponse(object):
         self.retweet_count = 456
 
 
-class TestTrend(TestCase):
+class TestTweet(TestCase):
     """Test for `src.tasks.tweets.Tweet`."""
 
     def setUp(self):
