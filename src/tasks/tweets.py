@@ -54,7 +54,7 @@ class Tweet(object):
 class Tweets(Task):
     """This is a task belonging to the service flow."""
 
-    def run(self, trend: Trend = None):
+    def run(self, trend: Trend = None) -> List[Tweet]:
         """This task does something.
 
         Parameters
@@ -101,10 +101,6 @@ class Tweets(Task):
                 ],
             )
         )
-
-        import pdb
-
-        pdb.set_trace()
 
         return tweet_list
 
