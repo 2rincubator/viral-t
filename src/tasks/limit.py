@@ -1,10 +1,10 @@
-"""Temporary Code."""
+"""Temporary Rate Limit Checker."""
 import time
 from datetime import datetime
 
 import tweepy
 
-from src.tasks.config import (
+from src.config import (
     TWITTER_ACCESS_TOKEN,
     TWITTER_ACCESS_TOKEN_SECRET,
     TWITTER_CONSUMER_KEY,

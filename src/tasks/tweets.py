@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*
-"""This module holds `prefect.Task` subclass definitions.
-
-This is largely an example, and is expected to be modified. Be sure to include
-task imports in `src.tasks` submodule for cleanliness.
-"""
+"""Twitter Tweets Related Modules"""
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import tweepy
 from prefect import Task
 
-from src.tasks.config import (
+from src.config import (
     TWITTER_ACCESS_TOKEN,
     TWITTER_ACCESS_TOKEN_SECRET,
     TWITTER_CONSUMER_KEY,
@@ -35,7 +31,7 @@ class Tweet(object):
     favorites: int
     retweets: int
 
-    def __dict__(self):
+    def to_dict(self):
         """Dictionary Representation"""
         return {
             "created_at": self.created_at,
@@ -52,61 +48,65 @@ class Tweet(object):
 
 
 class Tweets(Task):
-    """This is a task belonging to the service flow."""
+    """Fetches tweets for provided list of trends."""
 
-    def run(self, trend: Trend = None) -> List[Tweet]:
-        """This task does something.
+    def run(self, trends: List[Trend] = None) -> Dict[str, List[Tweet]]:
+        """This task executes a service call to collect
+        tweets for a provided array of trends.
 
         Parameters
         ----------
-        trend : Trend
-            This is a parameter.
+        trends : List[Trend]
+            Current trends for a given metro area.
 
         Returns
         -------
-        object
-            This is the returning object.
+        Dict[str, List[Tweets]]
+            Dictionary holding trends and tweets with media.
         """
-
-        # Build client and fetch trends
         client = self._build_client()
-        tweets = client.search(
-            q=trend.query,
-            result_type="popular",
-            count=TWITTER_SEARCH_COUNT,
-            include_entities=True,
-        )
 
-        # Compile list of tweets with media
-        tweet_list = list(
-            filter(
-                lambda tweet: len(tweet.media) >= 1,
-                [
-                    Tweet(
-                        created_at=tweet.created_at.isoformat(),
-                        id=tweet.id,
-                        text=tweet.text,
-                        user=tweet.user.screen_name,
-                        verified=tweet.user.verified,
-                        lang=tweet.lang,
-                        truncated=tweet.truncated,
-                        media=[
-                            media.get("media_url")
-                            for media in tweet.entities.get("media", [])
-                        ],
-                        favorites=tweet.favorite_count,
-                        retweets=tweet.retweet_count,
-                    )
-                    for tweet in tweets
-                ],
+        tweets = dict()
+        for trend in trends:
+            _tweets = client.search(
+                q=trend.query,
+                result_type="popular",
+                count=TWITTER_SEARCH_COUNT,
+                include_entities=True,
             )
-        )
 
-        return tweet_list
+            # Compile list of tweets with media
+            tweet_list = list(
+                filter(
+                    lambda tweet: len(tweet.media) >= 1,
+                    [
+                        Tweet(
+                            created_at=tweet.created_at.isoformat(),
+                            id=tweet.id,
+                            text=tweet.text,
+                            user=tweet.user.screen_name,
+                            verified=tweet.user.verified,
+                            lang=tweet.lang,
+                            truncated=tweet.truncated,
+                            media=[
+                                media.get("media_url")
+                                for media in tweet.entities.get("media", [])
+                            ],
+                            favorites=tweet.favorite_count,
+                            retweets=tweet.retweet_count,
+                        )
+                        for tweet in _tweets
+                    ],
+                )
+            )
+            # Create trend entry in tweets dictionary
+            tweets.update({trend.name: tweet_list})
+
+        return tweets
 
     @staticmethod
     def _build_client():
-        """TODO: Docstring"""
+        """Builds tweepy client."""
         handler = tweepy.OAuthHandler(
             TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET
         )

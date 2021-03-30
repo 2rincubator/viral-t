@@ -15,9 +15,7 @@ CLASSIFIERS = [
 ]
 INCLUDE_PACKAGE_DATA = True
 INSTALL_REQUIRES = open("requirements.txt").read().splitlines()
-KEYWORDS = (
-    "viral nft prefect flow dag workflow pipeline data"
-)
+KEYWORDS = "viral nft prefect flow dag workflow pipeline data"
 LONG_DESCRIPTION = open("README.md").read()
 
 setup(

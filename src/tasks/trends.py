@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*
-"""This module holds `prefect.Task` subclass definitions.
-
-This is largely an example, and is expected to be modified. Be sure to include
-task imports in `src.tasks` submodule for cleanliness.
-"""
+"""Twitter Trends Related Modules"""
 from dataclasses import dataclass
 from typing import List, Optional
 
 import tweepy
 from prefect import Task
 
-from src.tasks.config import (
+from src.config import (
     METRO_WOE_ID_MAP,
     TWITTER_ACCESS_TOKEN,
     TWITTER_ACCESS_TOKEN_SECRET,
@@ -31,7 +27,7 @@ class Trend(object):
     query: str
     volume: int
 
-    def __dict__(self):
+    def to_dict(self):
         """Dictionary Representation"""
         return {
             "metro": self.metro,
@@ -45,10 +41,11 @@ class Trend(object):
 
 
 class Trends(Task):
-    """This is a task belonging to the service flow."""
+    """Fetches trends for provided metro area."""
 
-    def run(self, metro: str = None) -> List[Trend]:
-        """This task does something.
+    def run(self, metro: str = "usa") -> List[Trend]:
+        """This task executes a service call to collect
+        trends for a provided metro area.
 
         Parameters
         ----------
@@ -57,8 +54,8 @@ class Trends(Task):
 
         Returns
         -------
-        object
-            This is the returning object.
+        List[Trend]
+            Array of trends for the given metro.
         """
         # Extract WOE Id from mapping
         woe_id = METRO_WOE_ID_MAP.get(metro)
@@ -85,7 +82,7 @@ class Trends(Task):
 
     @staticmethod
     def _build_client():
-        """TODO: Docstring"""
+        """Builds tweepy client."""
         handler = tweepy.OAuthHandler(
             TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET
         )
