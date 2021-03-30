@@ -3,7 +3,7 @@
 
 Description
 -----------
-This flow will pull Twitter trends anad put them on a picture for NFT sale.
+This flow will pull Twitter trends and put them on a picture for NFT sale.
 
 Author
 ------

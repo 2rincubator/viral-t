@@ -3,7 +3,7 @@
 
 Notes
 -----
-Storage and environment is setup for ParkMobile infrastructure.
+Storage and environment is setup for infrastructure.
 """
 
 import os
@@ -17,7 +17,7 @@ from src import config
 from src.build import flow
 
 ###############################################################################
-# NOTE: This is ParkMobile's Prefect deployment recipe. Advised not to change!
+# NOTE: This is ViralNFT's Prefect deployment recipe. Advised not to change!
 ###############################################################################
 
 # Setting flow `prefect.executors`
@@ -48,6 +48,6 @@ flow.storage = Docker(
         client_cert=(
             f"{os.environ.get('DOCKER_CERT_PATH')}/cert.pem",
             f"{os.environ.get('DOCKER_CERT_PATH')}/key.pem",
-        )
+        ),
     ),
 )  # pragma: no cover
