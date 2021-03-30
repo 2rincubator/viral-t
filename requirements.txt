@@ -1,0 +1,6 @@
+black==20.8b1
+flake8==3.7.8
+prefect==0.14.6
+pylint==2.5.3
+pytest==4.6.5
+pytest-cov==2.10.0
