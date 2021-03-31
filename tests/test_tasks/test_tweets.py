@@ -15,7 +15,7 @@ TRENDS_PAYLOAD = [
         name="Quavo",
         url="http://twitter.com/search?q=Quavo",
         promoted=None,
-        query="Quavo",
+        querystring="Quavo",
         volume=222585,
     )
 ]
@@ -53,9 +53,9 @@ class TestTweet(TestCase):
         """Setup the test case. Initialize the task object."""
         self.tweet = Tweet(
             created_at="1970-01-01",
-            id=123,
+            tweet_id=123,
             text="this ia an nft",
-            user="jack",
+            username="jack",
             verified=True,
             lang="en",
             truncated=False,
@@ -70,9 +70,9 @@ class TestTweet(TestCase):
 
         return result == {
             "created_at": "1970-01-01",
-            "id": 123,
+            "tweet_id": 123,
             "text": "this ia an nft",
-            "user": "jack",
+            "username": "jack",
             "verified": True,
             "lang": "en",
             "truncated": False,

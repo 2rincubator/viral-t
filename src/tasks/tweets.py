@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*
-"""Twitter Tweets Related Modules"""
-from dataclasses import dataclass
+"""Twitter Tweets Related Modules."""
 from typing import Dict, List, Optional
 
 import tweepy
 from prefect import Task
+from pydantic import BaseModel
 
 from src.config import (
     TWITTER_ACCESS_TOKEN,
@@ -16,34 +16,35 @@ from src.config import (
 from src.tasks.trends import Trend
 
 
-@dataclass
-class Tweet(object):
+class Tweet(BaseModel):
     """Tweet Object Data Structure."""
 
     created_at: str
-    id: int
+    tweet_id: int
     text: str
-    user: str
+    username: str
     verified: bool
     lang: str
     truncated: bool
     media: List[Optional[str]]
     favorites: int
     retweets: int
+    trend_id: Optional[int] = None
 
     def to_dict(self):
         """Dictionary Representation"""
         return {
             "created_at": self.created_at,
-            "id": self.id,
+            "tweet_id": self.tweet_id,
             "text": self.text,
-            "user": self.user,
+            "username": self.username,
             "verified": self.verified,
             "lang": self.lang,
             "truncated": self.truncated,
             "media": self.media,
             "favorites": self.favorites,
             "retweets": self.retweets,
+            "trend_id": self.trend_id,
         }
 
 
@@ -69,7 +70,7 @@ class Tweets(Task):
         tweets = dict()
         for trend in trends:
             _tweets = client.search(
-                q=trend.query,
+                q=trend.querystring,
                 result_type="popular",
                 count=TWITTER_SEARCH_COUNT,
                 include_entities=True,
@@ -82,9 +83,9 @@ class Tweets(Task):
                     [
                         Tweet(
                             created_at=tweet.created_at.isoformat(),
-                            id=tweet.id,
+                            tweet_id=tweet.id,
                             text=tweet.text,
-                            user=tweet.user.screen_name,
+                            username=tweet.user.screen_name,
                             verified=tweet.user.verified,
                             lang=tweet.lang,
                             truncated=tweet.truncated,
@@ -94,6 +95,7 @@ class Tweets(Task):
                             ],
                             favorites=tweet.favorite_count,
                             retweets=tweet.retweet_count,
+                            trend_id=trend.trend_id,
                         )
                         for tweet in _tweets
                     ],

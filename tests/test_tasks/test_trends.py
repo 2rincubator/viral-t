@@ -4,6 +4,7 @@ from unittest import TestCase, mock
 
 import tweepy
 from prefect import Task
+from snowflake import connector
 
 from src.tasks.trends import Trend, Trends
 
@@ -23,6 +24,24 @@ TRENDS_RESPONSE = [
 ]
 
 
+class MockSnowflakeConnection(object):
+    """Mock Connection object for Snowflake Connector."""
+
+    @staticmethod
+    def cursor():
+        """Mock cursor function."""
+        return MockSnowflakeCursor()
+
+
+class MockSnowflakeCursor(object):
+    """Mock Cursor object for Snowflake Cursor."""
+
+    @staticmethod
+    def execute(query: str = None):
+        """Mock execute function."""
+        return f"Executed query: {query}!"
+
+
 class TestTrend(TestCase):
     """Test for `src.tasks.trends.Trend`."""
 
@@ -34,7 +53,7 @@ class TestTrend(TestCase):
             name="Quavo",
             url="http://twitter.com/search?q=Quavo",
             promoted=None,
-            query="Quavo",
+            querystring="Quavo",
             volume=222585,
         )
 
@@ -48,8 +67,9 @@ class TestTrend(TestCase):
             "name": "Quavo",
             "url": "http://twitter.com/search?q=Quavo",
             "promoted": None,
-            "query": "Quavo",
+            "querystring": "Quavo",
             "volume": 222585,
+            "trend_id": None,
         }
 
 
@@ -64,10 +84,12 @@ class TestTrends(TestCase):
         """Test object type."""
         assert isinstance(self.task, Task)
 
+    @mock.patch.object(connector, "connect")
     @mock.patch.object(tweepy.API, "trends_place")
-    def test_run(self, mock_tweepy):
+    def test_run(self, mock_tweepy, mock_snowflake):
         """Test `.run()` method on task."""
         mock_tweepy.return_value = TRENDS_RESPONSE
+        mock_snowflake.return_value = MockSnowflakeConnection()
         result = self.task.run("usa")
 
         assert isinstance(result, list)
