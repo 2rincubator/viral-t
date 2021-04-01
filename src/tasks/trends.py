@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*
 """Twitter Trends Related Modules."""
-from typing import Dict, List, Optional
+import datetime
+from typing import Dict, List, Optional, Tuple
 
 import tweepy
 from prefect import Task
@@ -24,6 +25,7 @@ from src.config import (
 class Trend(BaseModel):
     """Trend Object Data Structure."""
 
+    date_created: datetime.datetime
     metro: str
     woe: int
     name: str
@@ -31,11 +33,11 @@ class Trend(BaseModel):
     promoted: Optional[str] = None
     querystring: str
     volume: int
-    trend_id: Optional[int] = None
 
     def to_dict(self) -> Dict:
         """Dictionary Representation"""
         return {
+            "date_created": self.date_created,
             "metro": self.metro,
             "woe": self.woe,
             "name": self.name,
@@ -43,19 +45,13 @@ class Trend(BaseModel):
             "promoted": self.promoted,
             "querystring": self.querystring,
             "volume": self.volume,
-            "trend_id": self.trend_id,
         }
 
     @property
-    def to_query(self) -> str:
-        """Generates query string for Snowflake insertion."""
-        fields = "(metro, woe, name, url, promoted, querystring, volume)"
-        querystring = (
-            "INSERT INTO trends %s VALUES('%s','%s','%s','%s','%s','%s','%s')"
-        )
-
-        values = (
-            fields,
+    def sequence(self) -> Tuple:
+        """Generates sequence for Snowflake insertion query."""
+        sequence = (
+            self.date_created,
             self.metro,
             self.woe,
             self.name,
@@ -65,7 +61,7 @@ class Trend(BaseModel):
             self.volume,
         )
 
-        return querystring % values
+        return sequence
 
 
 class Trends(Task):
@@ -103,9 +99,12 @@ class Trends(Task):
         )
         cursor = snowflake_ctx.cursor()
 
+        sequence = list()
         trend_list = list()
         for trend in trends[0].get("trends", []):
+            date_created = datetime.datetime.now()
             _trend = Trend(
+                date_created=date_created,
                 metro=metro,
                 woe=woe_id,
                 name=trend.get("name"),
@@ -115,9 +114,16 @@ class Trends(Task):
                 volume=trend.get("tweet_volume") or 0,  # NOTE: Numeric type
             )
             trend_list.append(_trend)
-            # Extract query and execute
-            query = _trend.to_query
-            cursor.execute(query)
+            sequence.append(_trend.sequence)
+
+        statement = """
+            INSERT INTO trends 
+            (date_created, metro, woe, name, url, promoted, querystring, volume) 
+            VALUES(%s, %s, %s, %s, %s, %s, %s, %s);
+        """
+        # Execute insertion query
+        cursor.executemany(statement, sequence)
+        cursor.close()
 
         return trend_list
 

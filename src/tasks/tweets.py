@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*
 """Twitter Tweets Related Modules."""
-from typing import Dict, List, Optional
+import datetime
+from typing import Dict, List, Optional, Tuple
 
 import tweepy
 from prefect import Task
 from pydantic import BaseModel
+from snowflake import connector
 
 from src.config import (
+    SNOWFLAKE_ACCOUNT,
+    SNOWFLAKE_DATABASE,
+    SNOWFLAKE_PASS,
+    SNOWFLAKE_SCHEMA,
+    SNOWFLAKE_USER,
     TWITTER_ACCESS_TOKEN,
     TWITTER_ACCESS_TOKEN_SECRET,
     TWITTER_CONSUMER_KEY,
@@ -19,7 +26,8 @@ from src.tasks.trends import Trend
 class Tweet(BaseModel):
     """Tweet Object Data Structure."""
 
-    created_at: str
+    date_created: datetime.datetime
+    tweet_created_at: datetime.datetime
     tweet_id: int
     text: str
     username: str
@@ -29,12 +37,13 @@ class Tweet(BaseModel):
     media: List[Optional[str]]
     favorites: int
     retweets: int
-    trend_id: Optional[int] = None
+    trend: str
 
     def to_dict(self):
         """Dictionary Representation"""
         return {
-            "created_at": self.created_at,
+            "date_created": self.date_created,
+            "tweet_created_at": self.tweet_created_at,
             "tweet_id": self.tweet_id,
             "text": self.text,
             "username": self.username,
@@ -44,21 +53,40 @@ class Tweet(BaseModel):
             "media": self.media,
             "favorites": self.favorites,
             "retweets": self.retweets,
-            "trend_id": self.trend_id,
+            "trend": self.trend,
         }
+
+    @property
+    def sequence(self) -> Tuple:
+        """Generates sequence for Snowflake insertion query."""
+        sequence = (
+            self.date_created,
+            self.tweet_created_at,
+            self.tweet_id,
+            self.text,
+            self.username,
+            self.verified,
+            self.lang,
+            self.truncated,
+            self.favorites,
+            self.retweets,
+            self.trend,
+        )
+
+        return sequence
 
 
 class Tweets(Task):
     """Fetches tweets for provided list of trends."""
 
-    def run(self, trends: List[Trend] = None) -> Dict[str, List[Tweet]]:
+    def run(self, trend: Trend = None) -> Dict[str, List[Tweet]]:
         """This task executes a service call to collect
         tweets for a provided array of trends.
 
         Parameters
         ----------
-        trends : List[Trend]
-            Current trends for a given metro area.
+        trend : Trend
+            Twitter trend in which to query tweets.
 
         Returns
         -------
@@ -68,41 +96,74 @@ class Tweets(Task):
         client = self._build_client()
 
         tweets = dict()
-        for trend in trends:
-            _tweets = client.search(
-                q=trend.querystring,
-                result_type="popular",
-                count=TWITTER_SEARCH_COUNT,
-                include_entities=True,
+        _tweets = client.search(
+            q=trend.querystring,
+            result_type="popular",
+            count=TWITTER_SEARCH_COUNT,
+            include_entities=True,
+        )
+
+        # Build Snowflake connection/cursor
+        snowflake_ctx = connector.connect(
+            account=SNOWFLAKE_ACCOUNT,
+            user=SNOWFLAKE_USER,
+            password=SNOWFLAKE_PASS,
+            database=SNOWFLAKE_DATABASE,
+            schema=SNOWFLAKE_SCHEMA,
+        )
+        cursor = snowflake_ctx.cursor()
+
+        sequence = list()
+        tweet_list = list()
+        for tweet in _tweets:
+            # Compile list of tweets with media
+            if not tweet.entities.get("media"):
+                continue
+
+            date_created = datetime.datetime.now()
+            _tweet = Tweet(
+                date_created=date_created,
+                tweet_created_at=tweet.created_at,
+                tweet_id=tweet.id,
+                text=tweet.text,
+                username=tweet.user.screen_name,
+                verified=tweet.user.verified,
+                lang=tweet.lang,
+                truncated=tweet.truncated,
+                media=[
+                    media.get("media_url")
+                    for media in tweet.entities.get("media", [])
+                ],
+                favorites=tweet.favorite_count,
+                retweets=tweet.retweet_count,
+                trend=trend.name,
             )
 
-            # Compile list of tweets with media
-            tweet_list = list(
-                filter(
-                    lambda tweet: len(tweet.media) >= 1,
-                    [
-                        Tweet(
-                            created_at=tweet.created_at.isoformat(),
-                            tweet_id=tweet.id,
-                            text=tweet.text,
-                            username=tweet.user.screen_name,
-                            verified=tweet.user.verified,
-                            lang=tweet.lang,
-                            truncated=tweet.truncated,
-                            media=[
-                                media.get("media_url")
-                                for media in tweet.entities.get("media", [])
-                            ],
-                            favorites=tweet.favorite_count,
-                            retweets=tweet.retweet_count,
-                            trend_id=trend.trend_id,
-                        )
-                        for tweet in _tweets
-                    ],
-                )
-            )
+            tweet_list.append(_tweet)
+            sequence.append(_tweet.sequence)
             # Create trend entry in tweets dictionary
             tweets.update({trend.name: tweet_list})
+
+        statement = """
+             INSERT INTO tweets
+             (
+                date_created,
+                tweet_created_at,
+                tweet_id,
+                text,
+                username,
+                verified,
+                lang,
+                truncated,
+                favorites,
+                retweets,
+                trend
+             )
+             VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+         """
+        # Execute insertion query
+        cursor.executemany(statement, sequence)
+        cursor.close()
 
         return tweets
 

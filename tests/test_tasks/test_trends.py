@@ -1,4 +1,5 @@
 """Test Suite for `src.tasks.trends` module."""
+import datetime
 import pytest
 from unittest import TestCase, mock
 
@@ -7,7 +8,7 @@ from prefect import Task
 from snowflake import connector
 
 from src.tasks.trends import Trend, Trends
-
+from tests.fixtures import MockSnowflakeConnection
 
 TRENDS_RESPONSE = [
     {
@@ -24,30 +25,13 @@ TRENDS_RESPONSE = [
 ]
 
 
-class MockSnowflakeConnection(object):
-    """Mock Connection object for Snowflake Connector."""
-
-    @staticmethod
-    def cursor():
-        """Mock cursor function."""
-        return MockSnowflakeCursor()
-
-
-class MockSnowflakeCursor(object):
-    """Mock Cursor object for Snowflake Cursor."""
-
-    @staticmethod
-    def execute(query: str = None):
-        """Mock execute function."""
-        return f"Executed query: {query}!"
-
-
 class TestTrend(TestCase):
     """Test for `src.tasks.trends.Trend`."""
 
     def setUp(self):
         """Setup the test case. Initialize the task object."""
         self.trend = Trend(
+            date_created=datetime.datetime(2020, 1, 1),
             metro="usa",
             woe=23424977,
             name="Quavo",
@@ -62,6 +46,7 @@ class TestTrend(TestCase):
         result = self.trend.to_dict()
 
         assert result == {
+            "date_created": datetime.datetime(2020, 1, 1),
             "metro": "usa",
             "woe": 23424977,
             "name": "Quavo",
@@ -69,7 +54,6 @@ class TestTrend(TestCase):
             "promoted": None,
             "querystring": "Quavo",
             "volume": 222585,
-            "trend_id": None,
         }
 
 
