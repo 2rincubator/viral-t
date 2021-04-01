@@ -117,8 +117,8 @@ class Trends(Task):
             sequence.append(_trend.sequence)
 
         statement = """
-            INSERT INTO trends 
-            (date_created, metro, woe, name, url, promoted, querystring, volume) 
+            INSERT INTO trends
+            (date_created, metro, woe, name, url, promoted, querystring, volume)
             VALUES(%s, %s, %s, %s, %s, %s, %s, %s);
         """
         # Execute insertion query

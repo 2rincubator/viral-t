@@ -28,12 +28,8 @@ jobs:
       run: |
         pip install flake8
         make lint
-    - name: Type check with mypy
-      run: |
-        pip install mypy
-        make mypy
     - name: Test with pytest
       run: |
         pip install pytest
         pip install pytest-cov
-        make test-all
+        make test
