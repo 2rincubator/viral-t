@@ -48,12 +48,18 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr .pytest_cache
 
 black: ## format package with black
-	python -m black src
-	python -m black setup.py
-	python -m black tests
+	python -m black --line-length 78 src
+	python -m black --line-length 78 setup.py
+	python -m black --line-length 78 tests
+
+isort: ## format and sort imports
+	python -m isort -m 3 -tc -rc src
 
 lint: ## check style with flake8
 	python -m flake8 src
+
+mypy: ## type check with mypy
+	python -m mypy src
 
 pylint: ## check style with pylint
 	python -m pylint src

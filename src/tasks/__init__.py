@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*
 """Sub-level module holding all tasks."""
+from src.tasks.trends import Trends
+from src.tasks.tweets import Tweets
 
-from src.tasks.task import MyTask
-
-__all__ = ["MyTask"]
+__all__ = ["Trends", "Tweets"]
