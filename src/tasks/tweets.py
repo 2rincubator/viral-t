@@ -11,7 +11,7 @@ from snowflake import connector
 from src.config import (
     SNOWFLAKE_ACCOUNT,
     SNOWFLAKE_DATABASE,
-    SNOWFLAKE_PASS,
+    SNOWFLAKE_PASSWORD,
     SNOWFLAKE_SCHEMA,
     SNOWFLAKE_USER,
     TWITTER_ACCESS_TOKEN,
@@ -107,7 +107,7 @@ class Tweets(Task):
         snowflake_ctx = connector.connect(
             account=SNOWFLAKE_ACCOUNT,
             user=SNOWFLAKE_USER,
-            password=SNOWFLAKE_PASS,
+            password=SNOWFLAKE_PASSWORD,
             database=SNOWFLAKE_DATABASE,
             schema=SNOWFLAKE_SCHEMA,
         )
@@ -145,8 +145,7 @@ class Tweets(Task):
             tweets.update({trend.name: tweet_list})
 
         statement = """
-             INSERT INTO tweets
-             (
+             INSERT INTO tweets (
                 date_created,
                 tweet_created_at,
                 tweet_id,
@@ -159,23 +158,23 @@ class Tweets(Task):
                 retweets,
                 trend
              )
-             VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
          """
+
         # Execute insertion query
-        cursor.executemany(statement, sequence)
-        cursor.close()
+        try:
+            cursor.executemany(statement, sequence)
+            cursor.close()
+        except connector.errors.InterfaceError:
+            pass
 
         return tweets
 
     @staticmethod
     def _build_client():
         """Builds tweepy client."""
-        handler = tweepy.OAuthHandler(
-            TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET
-        )
-        handler.set_access_token(
-            TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET
-        )
+        handler = tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET)
+        handler.set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET)
 
         client = tweepy.API(handler)
 

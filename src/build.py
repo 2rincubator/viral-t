@@ -14,7 +14,7 @@ Created
 March 30, 2021, 16:41:15
 """
 
-from prefect import Flow
+from prefect import Flow, Parameter
 
 # NOTE: It is highly advised not to import `src.config` in this module.
 from src.tasks import Trends, Tweets
@@ -23,9 +23,10 @@ from src.tasks import Trends, Tweets
 # Initialize flow.
 flow = Flow(name="Trend grabber and image generator")
 
-trends = Trends()
-tweets = Tweets()
+get_trends = Trends()
+get_tweets = Tweets()
 
 with flow:
-    trends()
+    trends = get_trends()
+    tweets = get_tweets.map(trends)
 ###############################################################################

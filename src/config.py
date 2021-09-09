@@ -4,10 +4,9 @@
 import os
 
 ENVIRONMENT_VARIABLES = {
-    "EXAMPLE_VARIABLE": os.environ.get("EXAMPLE_VARIABLE", None),
     "SNOWFLAKE_ACCOUNT": os.getenv("SNOWFLAKE_ACCOUNT"),
     "SNOWFLAKE_USER": os.getenv("SNOWFLAKE_USER"),
-    "SNOWFLAKE_PASS": os.getenv("SNOWFLAKE_PASS"),
+    "SNOWFLAKE_PASSWORD": os.getenv("SNOWFLAKE_PASSWORD"),
     "TWITTER_ACCESS_TOKEN": os.getenv("TWITTER_ACCESS_TOKEN"),
     "TWITTER_ACCESS_TOKEN_SECRET": os.getenv("TWITTER_ACCESS_TOKEN_SECRET"),
     "TWITTER_CONSUMER_KEY": os.getenv("TWITTER_CONSUMER_KEY"),
@@ -31,9 +30,7 @@ KUBE_MEMORY_REQUEST = None
 # NOTE: This is an extra package index in case you are using private packages.
 PYPI_EXTRA_INDEX_URL = (
     "--extra-index-url "
-    f"https://{os.environ.get('ARTIFACTORY_USER')}:{os.environ.get('ARTIFACTORY_PASS')}"
-    "@parkmobile.jfrog.io/"
-    "artifactory/api/pypi/pypi-local/simple"
+    f"xxx/pypi/pypi-local/simple"
 )
 
 # Twitter
@@ -67,7 +64,7 @@ METRO_WOE_ID_MAP = {
 # Snowflake
 SNOWFLAKE_ACCOUNT = os.getenv("SNOWFLAKE_ACCOUNT")
 SNOWFLAKE_USER = os.getenv("SNOWFLAKE_USER")
-SNOWFLAKE_PASS = os.getenv("SNOWFLAKE_PASS")
+SNOWFLAKE_PASSWORD = os.getenv("SNOWFLAKE_PASSWORD")
 
-SNOWFLAKE_DATABASE = "VIRAL_NFT"  # Subject to change
-SNOWFLAKE_SCHEMA = "VIRAL_NFT"  # Subject to change
+SNOWFLAKE_DATABASE = os.getenv("SNOWFLAKE_DATABASE")
+SNOWFLAKE_SCHEMA = os.getenv("SNOWFLAKE_SCHEMA")

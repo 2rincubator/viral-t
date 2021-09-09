@@ -12,7 +12,7 @@ from src.config import (
     METRO_WOE_ID_MAP,
     SNOWFLAKE_ACCOUNT,
     SNOWFLAKE_DATABASE,
-    SNOWFLAKE_PASS,
+    SNOWFLAKE_PASSWORD,
     SNOWFLAKE_SCHEMA,
     SNOWFLAKE_USER,
     TWITTER_ACCESS_TOKEN,
@@ -93,7 +93,7 @@ class Trends(Task):
         snowflake_ctx = connector.connect(
             account=SNOWFLAKE_ACCOUNT,
             user=SNOWFLAKE_USER,
-            password=SNOWFLAKE_PASS,
+            password=SNOWFLAKE_PASSWORD,
             database=SNOWFLAKE_DATABASE,
             schema=SNOWFLAKE_SCHEMA,
         )
@@ -122,8 +122,11 @@ class Trends(Task):
             VALUES(%s, %s, %s, %s, %s, %s, %s, %s);
         """
         # Execute insertion query
-        cursor.executemany(statement, sequence)
-        cursor.close()
+        try:
+            cursor.executemany(statement, sequence)
+            cursor.close()
+        except connector.errors.InterfaceError:
+            pass
 
         return trend_list
 

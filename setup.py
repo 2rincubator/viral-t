@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 VERSION = __version__ = "0.0.0"
 
 AUTHOR = "Viral NFT"
-AUTHOR_EMAIL = "team@winit.gg"
+AUTHOR_EMAIL = "hi@2ri.xyz"
 CLASSIFIERS = [
     "Intended Audience :: Developers",
     "Natural Language :: English",
@@ -15,7 +15,7 @@ CLASSIFIERS = [
 ]
 INCLUDE_PACKAGE_DATA = True
 INSTALL_REQUIRES = open("requirements.txt").read().splitlines()
-KEYWORDS = "viral nft prefect flow dag workflow pipeline data"
+KEYWORDS = "viral nft prefect flow dag workflow pipeline data trends twitter"
 LONG_DESCRIPTION = open("README.md").read()
 
 setup(

@@ -25,7 +25,7 @@ flow.executor = DaskExecutor()  # pragma: no cover
 
 # Setting flow `prefect.run_configs`
 flow.run_configs = KubernetesRun(
-    image_pull_secrets=["artdocker"],
+    image_pull_secrets=[],
     job_template=config.KUBE_JOB_TEMPLATE,
     cpu_limit=config.KUBE_CPU_LIMIT,
     cpu_request=config.KUBE_CPU_REQUEST,
