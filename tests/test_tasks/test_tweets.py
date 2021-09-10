@@ -40,9 +40,7 @@ class MockTweepySearchResponse(object):
         self.user = MockTweepySearchUser()
         self.lang = "en"
         self.truncated = False
-        self.entities = {
-            "media": [{"media_url": "http://www.somelink.co/xyz.jpg"}]
-        }
+        self.entities = {"media": [{"media_url": "http://www.somelink.co/xyz.jpg"}]}
         self.favorite_count = 123
         self.retweet_count = 456
 

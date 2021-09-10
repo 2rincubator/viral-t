@@ -23,9 +23,10 @@ from src.tasks import Trends, Tweets
 # Initialize flow.
 flow = Flow(name="Trend grabber and image generator")
 
-trends = Trends()
-tweets = Tweets()
+get_trends = Trends()
+get_tweets = Tweets()
 
 with flow:
-    trends()
+    trends = get_trends()
+    tweets = get_tweets.map(trends)
 ###############################################################################

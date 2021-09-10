@@ -19,9 +19,7 @@ api = tweepy.API(handler)
 print(api.rate_limit_status()["resources"]["search"]["/search/tweets"])
 print(api.rate_limit_status()["resources"]["trends"]["/trends/place"])
 
-epoch = api.rate_limit_status()["resources"]["search"]["/search/tweets"].get(
-    "reset"
-)
+epoch = api.rate_limit_status()["resources"]["search"]["/search/tweets"].get("reset")
 epoch_str = time.strftime("%a, %d %b %Y %H:%M:%S %Z", time.localtime(epoch))
 epoch_dt = datetime.strptime(epoch_str, "%a, %d %b %Y %H:%M:%S %Z")
 time_to_reset = epoch_dt - datetime.now()
