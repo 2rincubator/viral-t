@@ -131,8 +131,7 @@ class Tweets(Task):
                 lang=tweet.lang,
                 truncated=tweet.truncated,
                 media=[
-                    media.get("media_url")
-                    for media in tweet.entities.get("media", [])
+                    media.get("media_url") for media in tweet.entities.get("media", [])
                 ],
                 favorites=tweet.favorite_count,
                 retweets=tweet.retweet_count,

@@ -48,9 +48,9 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr .pytest_cache
 
 black: ## format package with black
-	python -m black --line-length 78 src
-	python -m black --line-length 78 setup.py
-	python -m black --line-length 78 tests
+	python -m black src
+	python -m black setup.py
+	python -m black tests
 
 isort: ## format and sort imports
 	python -m isort -m 3 -tc -rc src
