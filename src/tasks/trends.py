@@ -67,14 +67,14 @@ class Trend(BaseModel):
 class Trends(Task):
     """Fetches trends for provided metro area."""
 
-    def run(self, metro: str = "usa") -> List[Trend]:
+    def run(self, metro: str = "global") -> List[Trend]:
         """This task executes a service call to collect
         trends for a provided metro area.
 
         Parameters
         ----------
         metro : str
-            Region/location to query
+            Region/location to query.
 
         Returns
         -------
@@ -87,6 +87,7 @@ class Trends(Task):
 
         # Build client and fetch trends
         client = self._build_client()
+        date_created = datetime.datetime.now()
         trends = client.trends_place(id=woe_id)
 
         # Build Snowflake connection/cursor
@@ -102,7 +103,6 @@ class Trends(Task):
         sequence = list()
         trend_list = list()
         for trend in trends[0].get("trends", []):
-            date_created = datetime.datetime.now()
             _trend = Trend(
                 date_created=date_created,
                 metro=metro,
@@ -117,11 +117,20 @@ class Trends(Task):
             sequence.append(_trend.sequence)
 
         statement = """
-            INSERT INTO trends
-            (date_created, metro, woe, name, url, promoted, querystring, volume)
-            VALUES(%s, %s, %s, %s, %s, %s, %s, %s);
+            INSERT INTO trends (
+                date_created,
+                metro,
+                woe,
+                name,
+                url,
+                promoted,
+                querystring,
+                volume
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         """
         # Execute insertion query
+
         try:
             cursor.executemany(statement, sequence)
             cursor.close()
@@ -133,12 +142,8 @@ class Trends(Task):
     @staticmethod
     def _build_client():
         """Builds tweepy client."""
-        handler = tweepy.OAuthHandler(
-            TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET
-        )
-        handler.set_access_token(
-            TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET
-        )
+        handler = tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET)
+        handler.set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET)
 
         client = tweepy.API(handler)
 

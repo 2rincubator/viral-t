@@ -28,5 +28,5 @@ get_tweets = Tweets()
 
 with flow:
     trends = get_trends()
-    tweets = get_tweets.map(trends)
+    # tweets = get_tweets.map(trends)
 ###############################################################################
