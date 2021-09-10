@@ -33,3 +33,13 @@ jobs:
         pip install pytest
         pip install pytest-cov
         make test
+
+  migrations:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install flyaway
+      run: |
+
+
+
