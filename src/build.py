@@ -14,7 +14,7 @@ Created
 March 30, 2021, 16:41:15
 """
 
-from prefect import Flow, Parameter
+from prefect import Flow
 
 # NOTE: It is highly advised not to import `src.config` in this module.
 from src.tasks import Trends, Tweets
@@ -28,5 +28,5 @@ get_tweets = Tweets()
 
 with flow:
     trends = get_trends()
-    # tweets = get_tweets.map(trends)
+    tweets = get_tweets.map(trends)
 ###############################################################################

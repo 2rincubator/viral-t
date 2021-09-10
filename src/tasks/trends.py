@@ -129,8 +129,8 @@ class Trends(Task):
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         """
-        # Execute insertion query
 
+        # Execute insertion query
         try:
             cursor.executemany(statement, sequence)
             cursor.close()
